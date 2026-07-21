@@ -1,0 +1,182 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Window = Rayfield:CreateWindow({
+   Name = "Tamdz Hub | Doors V12 [FINAL REPAIR]",
+   LoadingTitle = "Đang khôi phục hệ thống...",
+   LoadingSubtitle = "by Tamdz",
+   ConfigurationSaving = { Enabled = false }
+})
+
+local _G = {
+    AutoKey = false,
+    AutoOpen = false,
+    AntiEntity = false,
+    ESP_Keys = false,
+    ESP_Doors = false,
+    ESP_Boss = false,
+    Tracers = true,
+    Noclip = false,
+    Fullbright = false
+}
+
+-- [HÀM TẠO ESP NGAY TRÊN ĐỒ VẬT]
+local function CreateVisual(obj, color, label)
+    if not obj or not obj.Parent or obj:FindFirstChild("Tamdz_Visuals") then return end
+    
+    local container = Instance.new("Folder")
+    container.Name = "Tamdz_Visuals"
+    container.Parent = obj
+
+    local targetPart = obj:IsA("BasePart") and obj or (obj:IsA("Model") and (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")))
+    if not targetPart then return end
+
+    local bill = Instance.new("BillboardGui", container)
+    bill.Size = UDim2.new(0, 150, 0, 50)
+    bill.AlwaysOnTop = true
+    bill.StudsOffset = Vector3.new(0, 0, 0)
+
+    local txt = Instance.new("TextLabel", bill)
+    txt.Size = UDim2.new(1, 0, 1, 0)
+    txt.BackgroundTransparency = 1
+    txt.TextColor3 = color
+    txt.TextSize = 15
+    txt.Font = Enum.Font.SourceSansBold
+    txt.TextStrokeTransparency = 0
+
+    local att1 = Instance.new("Attachment", targetPart)
+    local beam = Instance.new("Beam", container)
+    beam.Attachment1 = att1
+    beam.Color = ColorSequence.new(color)
+    beam.Width0, beam.Width1 = 0.1, 0.1
+    beam.LightEmission, beam.FaceCamera = 1, true
+
+    task.spawn(function()
+        while obj and obj.Parent and container.Parent do
+            local char = LocalPlayer.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if root and _G.Tracers then
+                local att0 = root:FindFirstChild("Tamdz_Att") or Instance.new("Attachment", root)
+                att0.Name = "Tamdz_Att"
+                beam.Attachment0 = att0
+                beam.Enabled = true
+                txt.Text = label .. "\n[" .. math.floor((root.Position - targetPart.Position).Magnitude) .. "m]"
+            else
+                beam.Enabled = false
+                txt.Text = label
+            end
+            task.wait(0.2)
+        end
+    end)
+end
+
+-- [TABS]
+local TabAuto = Window:CreateTab("Tự động", 4483362458)
+local TabESP = Window:CreateTab("Hiển thị (ESP)", 4483362258)
+local TabPlayer = Window:CreateTab("Người chơi", 4483362258)
+
+-- [AUTO TAB]
+TabAuto:CreateToggle({
+    Name = "Chống Quái (Rush/Ambush/Eyes...)", 
+    CurrentValue = false, 
+    Callback = function(v) 
+        _G.AntiEntity = v 
+        if v then
+            Rayfield:Notify({
+                Title = "Tamdz Hub", 
+                Content = "Đã bật hệ thống cảnh báo quái ở góc phải!", 
+                Duration = 3
+            })
+        end
+    end
+})
+TabAuto:CreateToggle({Name = "Auto Hút Chìa Khóa", CurrentValue = false, Callback = function(v) _G.AutoKey = v end})
+TabAuto:CreateToggle({Name = "Auto Mở Cửa", CurrentValue = false, Callback = function(v) _G.AutoOpen = v end})
+
+-- [ESP TAB]
+TabESP:CreateToggle({Name = "Bật Tia & Nhãn", CurrentValue = true, Callback = function(v) _G.Tracers = v end})
+TabESP:CreateToggle({Name = "ESP Chìa khóa", CurrentValue = false, Callback = function(v) _G.ESP_Keys = v end})
+TabESP:CreateToggle({Name = "ESP Cửa tiếp theo", CurrentValue = false, Callback = function(v) _G.ESP_Doors = v end})
+TabESP:CreateToggle({Name = "ESP Quái vật", CurrentValue = false, Callback = function(v) _G.ESP_Boss = v end})
+
+-- [PLAYER TAB]
+TabPlayer:CreateButton({
+    Name = "RESET NHÂN VẬT (Hồi sinh)",
+    Callback = function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.Health = 0
+        end
+    end,
+})
+TabPlayer:CreateToggle({Name = "Noclip (Xuyên tường)", CurrentValue = false, Callback = function(v) _G.Noclip = v end})
+TabPlayer:CreateToggle({Name = "Fullbright (Sáng map)", CurrentValue = false, Callback = function(v) _G.Fullbright = v end})
+
+-- [BIẾN ĐỂ TRÁNH SPAM THÔNG BÁO]
+local lastAlertTick = 0
+
+-- [VÒNG LẶP QUÉT VẬT THỂ & QUÁI VẬT]
+task.spawn(function()
+    while task.wait(0.3) do
+        pcall(function()
+            local char = LocalPlayer.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            local root = char.HumanoidRootPart
+
+            for _, v in pairs(workspace:GetDescendants()) do
+                -- QUÉT CHÌA KHÓA
+                if (v.Name == "KeyObtain" or (v.Name:find("Key") and v:IsA("Model") and not v.Name:find("Typewriter"))) then
+                    if _G.ESP_Keys then CreateVisual(v, Color3.fromRGB(255, 255, 0), "KEY") end
+                    if _G.AutoKey and (root.Position - (v:IsA("BasePart") and v.Position or v:GetModelCFrame().p)).Magnitude <= 40 then
+                        local p = v:FindFirstChildOfClass("ProximityPrompt") or v.Parent:FindFirstChildOfClass("ProximityPrompt")
+                        if p then p.HoldDuration = 0; fireproximityprompt(p) end
+                    end
+                end
+
+                -- QUÉT CỬA
+                if v.Name == "Door" and v:IsA("Model") and (v:FindFirstChild("Sign") or v:FindFirstChild("Number")) then
+                    if _G.ESP_Doors then CreateVisual(v, Color3.fromRGB(0, 255, 255), "DOOR") end
+                    if _G.AutoOpen and (root.Position - v:GetModelCFrame().p).Magnitude <= 15 then
+                        local p = v:FindFirstChildOfClass("ProximityPrompt") or v:FindFirstChild("Lock", true) and v.Lock:FindFirstChildOfClass("ProximityPrompt")
+                        if p then p.HoldDuration = 0; fireproximityprompt(p) end
+                    end
+                end
+
+                -- QUÉT QUÁI (BOSS / ENTITY)
+                if v.Name:find("Moving") or v.Name == "FigureTag" or v.Name == "SeekMoving" or v.Name == "RushMoving" or v.Name == "AmbushMoving" or v.Name == "Eyes" then
+                    if _G.ESP_Boss then 
+                        CreateVisual(v, Color3.fromRGB(255, 0, 0), "ENTITY: " .. v.Name) 
+                    end
+                    
+                    if _G.AntiEntity then
+                        local entityPart = v:IsA("BasePart") and v or (v:IsA("Model") and (v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")))
+                        if entityPart then
+                            local dist = (root.Position - entityPart.Position).Magnitude
+                            -- Nếu quái ở bán kính dưới 80 mét và cách 4 giây mới thông báo lại một lần tránh bị tràn màn hình
+                            if dist < 80 and (tick() - lastAlertTick > 4) then
+                                lastAlertTick = tick()
+                                Rayfield:Notify({
+                                    Title = "⚠️ CẢNH BÁO QUÁI!",
+                                    Content = v.Name .. " đang ở cách bạn " .. math.floor(dist) .."m!",
+                                    Duration = 3,
+                                })
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- [HỆ THỐNG PHỤ TRỢ]
+RunService.Stepped:Connect(function()
+    if _G.Noclip and LocalPlayer.Character then
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+    if _G.Fullbright then Lighting.Ambient = Color3.fromRGB(255, 255, 255) end
+end)

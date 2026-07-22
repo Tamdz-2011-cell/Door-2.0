@@ -2,13 +2,12 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local Window = Rayfield:CreateWindow({
-   Name = "Tamdz Hub | Doors V2.2.1 [Full Features Pro]",
-   LoadingTitle = "Đang khởi chạy hệ thống ...",
+   Name = "Tamdz Hub | Doors V15 [Fixed Auto Open & Hide]",
+   LoadingTitle = "Đang tối ưu hóa hệ thống...",
    LoadingSubtitle = "by Tamdz",
    ConfigurationSaving = { Enabled = false }
 })
@@ -21,21 +20,16 @@ local _G = {
     AutoSmartEyes = false,
     AutoHide = false,      
     AntiEntity = false,
-    AutoHeal = false,
-    AutoFigureSolve = false,
     ESP_Keys = false,
     ESP_Doors = false,
     ESP_Levers = false,
     ESP_Books = false,
     ESP_Breakers = false,
-    ESP_Items = false,
     ESP_Boss = false,
     ESP_Players = false,
     Tracers = true,
     Noclip = false,
     Fullbright = false,
-    FlyEnabled = false,
-    FlySpeed = 50,
     SpeedEnabled = false,
     WalkSpeedValue = 20
 }
@@ -163,41 +157,42 @@ local function ApplyPlayerESP(plr)
         end
     end
 
-    if plr.Character then setupChar(plr.Character) end
+    if plr.Character then
+        setupChar(plr.Character)
+    end
     plr.CharacterAdded:Connect(setupChar)
 end
 
-for _, p in pairs(Players:GetPlayers()) do ApplyPlayerESP(p) end
+for _, p in pairs(Players:GetPlayers()) do
+    ApplyPlayerESP(p)
+end
 Players.PlayerAdded:Connect(ApplyPlayerESP)
 
 -- [TABS]
 local TabAuto = Window:CreateTab("Tự động", 4483362458)
 local TabESP = Window:CreateTab("Hiển thị (ESP)", 4483362258)
-local TabPlayer = Window:CreateTab("Người chơi & Bay", 4483362258)
+local TabPlayer = Window:CreateTab("Người chơi", 4483362258)
 
 -- [AUTO TAB]
 TabAuto:CreateToggle({Name = "Chống Quái (Rush/Ambush/Eyes...)", CurrentValue = false, Callback = function(v) _G.AntiEntity = v end})
 TabAuto:CreateToggle({Name = "Auto Né Eyes / Nhìn Lookman (Smart Eyes)", CurrentValue = false, Callback = function(v) _G.AutoSmartEyes = v end})
 TabAuto:CreateToggle({Name = "Auto Trốn Rush (Tự động chạy vào tủ)", CurrentValue = false, Callback = function(v) _G.AutoHide = v end})
 TabAuto:CreateToggle({Name = "Auto Hút Chìa Khóa", CurrentValue = false, Callback = function(v) _G.AutoKey = v end})
-TabAuto:CreateToggle({Name = "Auto Mở Cửa (Siêu nhanh)", CurrentValue = false, Callback = function(v) _G.AutoOpen = v end})
-TabAuto:CreateToggle({Name = "Auto Nhặt Sách (Room 50)", CurrentValue = false, Callback = function(v) _G.AutoBook = v end})
+TabAuto:CreateToggle({Name = "Auto Mở Cửa (Đã fix siêu nhanh)", CurrentValue = false, Callback = function(v) _G.AutoOpen = v end})
+TabAuto:CreateToggle({Name = "Auto Nhặt Sách Giải Đố (Room 50)", CurrentValue = false, Callback = function(v) _G.AutoBook = v end})
 TabAuto:CreateToggle({Name = "Auto Thu Thập Cục Điện (Room 100)", CurrentValue = false, Callback = function(v) _G.AutoBreaker = v end})
-TabAuto:CreateToggle({Name = "Auto Hồi Máu / Dùng Thuốc Khi Yếu HP", CurrentValue = false, Callback = function(v) _G.AutoHeal = v end})
-TabAuto:CreateToggle({Name = "Auto Giải Mã Phòng Điện / Mật Thư (Figure)", CurrentValue = false, Callback = function(v) _G.AutoFigureSolve = v end})
 
 -- [ESP TAB]
 TabESP:CreateToggle({Name = "Bật Tia & Nhãn (Vật phẩm)", CurrentValue = true, Callback = function(v) _G.Tracers = v end})
 TabESP:CreateToggle({Name = "ESP Chìa khóa", CurrentValue = false, Callback = function(v) _G.ESP_Keys = v end})
 TabESP:CreateToggle({Name = "ESP Cửa tiếp theo", CurrentValue = false, Callback = function(v) _G.ESP_Doors = v end})
-TabESP:CreateToggle({Name = "ESP Cần gạt & Công tắc", CurrentValue = false, Callback = function(v) _G.ESP_Levers = v end})
+TabESP:CreateToggle({Name = "ESP Cần gạt (Lever / Switch)", CurrentValue = false, Callback = function(v) _G.ESP_Levers = v end})
 TabESP:CreateToggle({Name = "ESP Sách Giải Đố (Room 50)", CurrentValue = false, Callback = function(v) _G.ESP_Books = v end})
-TabESP:CreateToggle({Name = "ESP Cục Điện (Room 100)", CurrentValue = false, Callback = function(v) _G.ESP_Breakers = v end})
-TabESP:CreateToggle({Name = "ESP Vật Phẩm (Thuốc, Đèn Pin, Vitamin...)", CurrentValue = false, Callback = function(v) _G.ESP_Items = v end})
+TabESP:CreateToggle({Name = "ESP Cục Điện (Room 100 Breaker)", CurrentValue = false, Callback = function(v) _G.ESP_Breakers = v end})
 TabESP:CreateToggle({Name = "ESP Quái vật", CurrentValue = false, Callback = function(v) _G.ESP_Boss = v end})
 
--- [PLAYER & FLY TAB]
-TabPlayer:CreateToggle({Name = "ESP Người chơi", CurrentValue = false, Callback = function(v) _G.ESP_Players = v end})
+-- [PLAYER TAB]
+TabPlayer:CreateToggle({Name = "ESP Người chơi (Quanh nhân vật)", CurrentValue = false, Callback = function(v) _G.ESP_Players = v end})
 TabPlayer:CreateButton({
     Name = "RESET NHÂN VẬT (Hồi sinh)",
     Callback = function()
@@ -210,62 +205,14 @@ TabPlayer:CreateToggle({Name = "Noclip (Xuyên tường)", CurrentValue = false,
 TabPlayer:CreateToggle({Name = "Fullbright (Sáng map)", CurrentValue = false, Callback = function(v) _G.Fullbright = v end})
 TabPlayer:CreateToggle({Name = "Bật Tốc Độ Chạy (Không giật)", CurrentValue = false, Callback = function(v) _G.SpeedEnabled = v end})
 TabPlayer:CreateSlider({
-    Name = "Tốc độ chạy",
+    Name = "Tốc độ (Khuyến nghị 20-25)",
     Range = {16, 50},
     Increment = 1,
     CurrentValue = 20,
     Callback = function(v) _G.WalkSpeedValue = v end,
 })
-TabPlayer:CreateToggle({Name = "Bay (Fly Mode)", CurrentValue = false, Callback = function(v) _G.FlyEnabled = v end})
-TabPlayer:CreateSlider({
-    Name = "Tốc độ bay",
-    Range = {20, 200},
-    Increment = 5,
-    CurrentValue = 50,
-    Callback = function(v) _G.FlySpeed = v end,
-})
 
--- [LOGIC FLY / BAY]
-task.spawn(function()
-    local bg, bv
-    RunService.RenderStepped:Connect(function()
-        local char = LocalPlayer.Character
-        local root = char and char:FindFirstChild("HumanoidRootPart")
-        if _G.FlyEnabled and root then
-            if not root:FindFirstChild("Tamdz_FlyVelocity") then
-                bv = Instance.new("BodyVelocity")
-                bv.Name = "Tamdz_FlyVelocity"
-                bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bv.Velocity = Vector3.new(0, 0, 0)
-                bv.Parent = root
-                
-                bg = Instance.new("BodyGyro")
-                bg.Name = "Tamdz_FlyGyro"
-                bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-                bg.P = 10000
-                bg.Parent = root
-            else
-                bv.Velocity = Vector3.new(0, 0, 0)
-                bg.CFrame = Camera.CFrame
-                local moveDir = Vector3.new(0,0,0)
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + Camera.CFrame.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - Camera.CFrame.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - Camera.CFrame.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + Camera.CFrame.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0,1,0) end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0,1,0) end
-                bv.Velocity = moveDir * _G.FlySpeed
-            end
-        else
-            if root then
-                if root:FindFirstChild("Tamdz_FlyVelocity") then root.Tamdz_FlyVelocity:Destroy() end
-                if root:FindFirstChild("Tamdz_FlyGyro") then root.Tamdz_FlyGyro:Destroy() end
-            end
-        end
-    end)
-end)
-
--- [HỆ THỐNG CẢNH BÁO QUÁI & AUTO TRỐN]
+-- [HỆ THỐNG CẢNH BÁO QUÁI & AUTO TRỐN RUSH CẢI TIẾN]
 workspace.ChildAdded:Connect(function(v)
     local name = v.Name
     if name:find("Rush") or name:find("Ambush") or name:find("Eyes") or name:find("Lookman") or name:find("Figure") or name:find("Seek") then
@@ -274,10 +221,12 @@ workspace.ChildAdded:Connect(function(v)
                 Rayfield:Notify({Title = "⚠️ CẢNH BÁO QUÁI!", Content = name .. " đang đến gần!", Duration = 4})
             end
 
+            -- Auto trốn khi Rush/Ambush xuất hiện
             if _G.AutoHide and (name:find("Rush") or name:find("Ambush")) then
                 local char = LocalPlayer.Character
                 local root = char and char:FindFirstChild("HumanoidRootPart")
                 local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+                
                 if root and humanoid then
                     local closestHide, shortestDist = nil, math.huge
                     for _, obj in pairs(workspace:GetDescendants()) do
@@ -293,6 +242,7 @@ workspace.ChildAdded:Connect(function(v)
                             end
                         end
                     end
+
                     if closestHide then
                         humanoid:MoveTo(closestHide.Part.Position)
                         task.spawn(function()
@@ -314,7 +264,7 @@ workspace.ChildAdded:Connect(function(v)
     end
 end)
 
--- [VÒNG LẶP AUTO MỞ CỬA]
+-- [VÒNG LẶP RIÊNG CHO AUTO MỞ CỬA (SIÊU NHANH)]
 task.spawn(function()
     while task.wait(0.05) do
         pcall(function()
@@ -322,6 +272,8 @@ task.spawn(function()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             if not root then return end
+
+            -- Quét nhanh các phòng gần nhất để tìm cửa
             for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
                 local door = room:FindFirstChild("Door")
                 if door and door:IsA("Model") then
@@ -339,47 +291,14 @@ task.spawn(function()
     end
 end)
 
--- [VÒNG LẶP TÍNH NĂNG PHỤ TRỢ: HỒI MÁU, GIẢI MÃ FIGURE, ESP ITEMS...]
+-- [VÒNG LẶP QUÉT CÁC TÍNH NĂNG CÒN LẠI (ESP, AUTO KEY, BOOK...)]
 task.spawn(function()
-    while task.wait(0.3) do
+    while task.wait(0.2) do
         pcall(function()
             local char = LocalPlayer.Character
             if not char or not char:FindFirstChild("HumanoidRootPart") then return end
             local root = char.HumanoidRootPart
-            local humanoid = char:FindFirstChildOfClass("Humanoid")
 
-            -- Auto Hồi Máu (Dùng bình thuốc / Herbs / Medkit khi dưới 50 máu)
-            if _G.AutoHeal and humanoid and humanoid.Health < 50 and humanoid.Health > 0 then
-                local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
-                for _, item in pairs(char:GetChildren()) do
-                    if item:IsA("Tool") and (item.Name:find("Medkit") or item.Name:find("Herb") or item.Name:find("Pills")) then
-                        item:Activate()
-                    end
-                end
-                if backpack then
-                    for _, item in pairs(backpack:GetChildren()) do
-                        if item.Name:find("Medkit") or item.Name:find("Herb") or item.Name:find("Pills") then
-                            item.Parent = char
-                            item:Activate()
-                        end
-                    end
-                end
-            end
-
-            -- Auto Giải Mã Phòng Mật Thư (Room 50 - Giúp hiện thông báo hoặc tự động tương tác mật khẩu nếu ở gần)
-            if _G.AutoFigureSolve then
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if v.Name == "Paper" or v.Name == "Code" or v.Name:find("Painting") then
-                        local p = v:FindFirstChildOfClass("ProximityPrompt", true)
-                        if p and (root.Position - (v:IsA("BasePart") and v.Position or v:GetModelCFrame().p)).Magnitude <= 20 then
-                            p.HoldDuration = 0
-                            fireproximityprompt(p)
-                        end
-                    end
-                end
-            end
-
-            -- Quét vật thể ESP tổng hợp
             for _, v in pairs(workspace:GetDescendants()) do
                 if _G.AutoSmartEyes then
                     if v.Name == "Eyes" then
@@ -423,15 +342,7 @@ task.spawn(function()
                     if _G.ESP_Breakers then CreateVisual(v, Color3.fromRGB(0, 255, 0), "BREAKER POLE") end
                     local p = v:FindFirstChildOfClass("ProximityPrompt", true)
                     if _G.AutoBreaker and p and (root.Position - v:GetModelCFrame().p).Magnitude <= 40 then
-                        p.HoldDuration = 0
-                        fireproximityprompt(p)
-                    end
-                end
-
-                -- ESP Items (Bình thuốc, đèn pin, Vitamin,...)
-                if _G.ESP_Items and (v.Name:find("Flashlight") or v.Name:find("Vitamin") or v.Name:find("Medkit") or v.Name:find("Key") or v.Name:find("Lockpick") or v.Name:find("Battery")) then
-                    if v:IsA("Model") or v:IsA("BasePart") then
-                        CreateVisual(v, Color3.fromRGB(0, 255, 128), "ITEM: " .. v.Name)
+                        p.HoldDuration = 0; fireproximityprompt(p)
                     end
                 end
 
@@ -443,12 +354,13 @@ task.spawn(function()
     end
 end)
 
--- [XỬ LÝ WALKSPEED, NOCLIP, FULLBRIGHT]
+-- [XỬ LÝ WALKSPEED CHỐNG GIẬT & NOCLIP / FULLBRIGHT]
 RunService.Stepped:Connect(function()
     local char = LocalPlayer.Character
     if char then
         local humanoid = char:FindFirstChildOfClass("Humanoid")
         local rootPart = char:FindFirstChild("HumanoidRootPart")
+        
         if humanoid and rootPart then
             if _G.SpeedEnabled then
                 humanoid.WalkSpeed = 16
@@ -457,6 +369,7 @@ RunService.Stepped:Connect(function()
                 end
             end
         end
+
         if _G.Noclip then
             for _, v in pairs(char:GetDescendants()) do
                 if v:IsA("BasePart") then v.CanCollide = false end

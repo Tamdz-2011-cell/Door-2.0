@@ -6,7 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local Window = Rayfield:CreateWindow({
-   Name = "Tamdz Hub | Doors V2.2 [Fixed Auto Open & Hide]",
+   Name = "Tamdz Hub | Doors V15 [Fixed Auto Open & Hide]",
    LoadingTitle = "Đang tối ưu hóa hệ thống...",
    LoadingSubtitle = "by Tamdz",
    ConfigurationSaving = { Enabled = false }
@@ -221,7 +221,6 @@ workspace.ChildAdded:Connect(function(v)
                 Rayfield:Notify({Title = "⚠️ CẢNH BÁO QUÁI!", Content = name .. " đang đến gần!", Duration = 4})
             end
 
-            -- Auto trốn khi Rush/Ambush xuất hiện
             if _G.AutoHide and (name:find("Rush") or name:find("Ambush")) then
                 local char = LocalPlayer.Character
                 local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -273,7 +272,6 @@ task.spawn(function()
             local root = char and char:FindFirstChild("HumanoidRootPart")
             if not root then return end
 
-            -- Quét nhanh các phòng gần nhất để tìm cửa
             for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
                 local door = room:FindFirstChild("Door")
                 if door and door:IsA("Model") then

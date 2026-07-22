@@ -6,8 +6,8 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local Window = Rayfield:CreateWindow({
-   Name = "Tamdz Hub | Doors V15 [Fixed Auto Open & Hide]",
-   LoadingTitle = "Đang tối ưu hóa hệ thống...",
+   Name = "Tamdz Hub | Doors V14 [Anti-Lag Speed & Fix]",
+   LoadingTitle = "Đang khởi tạo hệ thống...",
    LoadingSubtitle = "by Tamdz",
    ConfigurationSaving = { Enabled = false }
 })
@@ -31,7 +31,7 @@ local _G = {
     Noclip = false,
     Fullbright = false,
     SpeedEnabled = false,
-    WalkSpeedValue = 20
+    WalkSpeedValue = 20 -- Mặc định để 20 cho mượt, không sợ bị giật
 }
 
 -- [HÀM TẠO ESP CHUẨN XÁC VỊ TRÍ]
@@ -174,11 +174,20 @@ local TabESP = Window:CreateTab("Hiển thị (ESP)", 4483362258)
 local TabPlayer = Window:CreateTab("Người chơi", 4483362258)
 
 -- [AUTO TAB]
-TabAuto:CreateToggle({Name = "Chống Quái (Rush/Ambush/Eyes...)", CurrentValue = false, Callback = function(v) _G.AntiEntity = v end})
+TabAuto:CreateToggle({
+    Name = "Chống Quái (Rush/Ambush/Eyes...)", 
+    CurrentValue = false, 
+    Callback = function(v) 
+        _G.AntiEntity = v 
+        if v then
+            Rayfield:Notify({Title = "Tamdz Hub", Content = "Đã bật cảnh báo quái!", Duration = 3})
+        end
+    end
+})
 TabAuto:CreateToggle({Name = "Auto Né Eyes / Nhìn Lookman (Smart Eyes)", CurrentValue = false, Callback = function(v) _G.AutoSmartEyes = v end})
 TabAuto:CreateToggle({Name = "Auto Trốn Rush (Tự động chạy vào tủ)", CurrentValue = false, Callback = function(v) _G.AutoHide = v end})
 TabAuto:CreateToggle({Name = "Auto Hút Chìa Khóa", CurrentValue = false, Callback = function(v) _G.AutoKey = v end})
-TabAuto:CreateToggle({Name = "Auto Mở Cửa (Đã fix siêu nhanh)", CurrentValue = false, Callback = function(v) _G.AutoOpen = v end})
+TabAuto:CreateToggle({Name = "Auto Mở Cửa", CurrentValue = false, Callback = function(v) _G.AutoOpen = v end})
 TabAuto:CreateToggle({Name = "Auto Nhặt Sách Giải Đố (Room 50)", CurrentValue = false, Callback = function(v) _G.AutoBook = v end})
 TabAuto:CreateToggle({Name = "Auto Thu Thập Cục Điện (Room 100)", CurrentValue = false, Callback = function(v) _G.AutoBreaker = v end})
 
@@ -203,35 +212,54 @@ TabPlayer:CreateButton({
 })
 TabPlayer:CreateToggle({Name = "Noclip (Xuyên tường)", CurrentValue = false, Callback = function(v) _G.Noclip = v end})
 TabPlayer:CreateToggle({Name = "Fullbright (Sáng map)", CurrentValue = false, Callback = function(v) _G.Fullbright = v end})
-TabPlayer:CreateToggle({Name = "Bật Tốc Độ Chạy (Không giật)", CurrentValue = false, Callback = function(v) _G.SpeedEnabled = v end})
+
+-- Cài đặt WalkSpeed thông minh chống giật
+TabPlayer:CreateToggle({
+    Name = "Bật Tốc Độ Chạy (Không giật)", 
+    CurrentValue = false, 
+    Callback = function(v) 
+        _G.SpeedEnabled = v 
+    end
+})
+
 TabPlayer:CreateSlider({
     Name = "Tốc độ (Khuyến nghị 20-25)",
     Range = {16, 50},
     Increment = 1,
     CurrentValue = 20,
-    Callback = function(v) _G.WalkSpeedValue = v end,
+    Callback = function(v)
+        _G.WalkSpeedValue = v
+    end,
 })
 
--- [HỆ THỐNG CẢNH BÁO QUÁI & AUTO TRỐN RUSH CẢI TIẾN]
+-- [HỆ THỐNG CẢNH BÁO QUÁI & TỰ ĐỘNG CHẠY VÀO TỦ]
 workspace.ChildAdded:Connect(function(v)
     local name = v.Name
-    if name:find("Rush") or name:find("Ambush") or name:find("Eyes") or name:find("Lookman") or name:find("Figure") or name:find("Seek") then
+    if name:find("Moving") or name == "FigureTag" or name == "SeekMoving" or name == "RushMoving" or name == "AmbushMoving" or name == "Eyes" or name == "Lookman" then
         task.spawn(function()
+            task.wait(0.05)
             if _G.AntiEntity then
-                Rayfield:Notify({Title = "⚠️ CẢNH BÁO QUÁI!", Content = name .. " đang đến gần!", Duration = 4})
+                Rayfield:Notify({
+                    Title = "⚠️ CẢNH BÁO QUÁI XUẤT HIỆN!",
+                    Content = name .. " vừa xuất hiện!",
+                    Duration = 4,
+                })
             end
 
-            if _G.AutoHide and (name:find("Rush") or name:find("Ambush")) then
+            if _G.AutoHide and (name == "RushMoving" or name == "AmbushMoving") then
                 local char = LocalPlayer.Character
                 local root = char and char:FindFirstChild("HumanoidRootPart")
                 local humanoid = char and char:FindFirstChildOfClass("Humanoid")
                 
                 if root and humanoid then
-                    local closestHide, shortestDist = nil, math.huge
+                    local closestHide = nil
+                    local shortestDist = math.huge
+
                     for _, obj in pairs(workspace:GetDescendants()) do
-                        if obj.Name == "Closet" or obj.Name == "Wardrobe" or obj.Name:find("Hide_Placeholder") then
-                            local prompt = obj:FindFirstChildOfClass("ProximityPrompt", true)
+                        if (obj.Name == "Closet" or obj.Name == "Wardrobe" or obj.Name:find("Hide")) then
+                            local prompt = obj:FindFirstChildOfClass("ProximityPrompt") or obj:FindFirstChild("Prompt", true)
                             local targetPart = obj:IsA("Model") and (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")) or (obj:IsA("BasePart") and obj)
+                            
                             if prompt and targetPart then
                                 local dist = (root.Position - targetPart.Position).Magnitude
                                 if dist < shortestDist then
@@ -244,15 +272,16 @@ workspace.ChildAdded:Connect(function(v)
 
                     if closestHide then
                         humanoid:MoveTo(closestHide.Part.Position)
+                        
                         task.spawn(function()
-                            local t = 0
-                            while t < 5 do
+                            local timeout = 0
+                            while timeout < 6 do
                                 if (root.Position - closestHide.Part.Position).Magnitude < 6 then
                                     closestHide.Prompt.HoldDuration = 0
                                     fireproximityprompt(closestHide.Prompt)
                                     break
                                 end
-                                t = t + 0.1
+                                timeout = timeout + 0.1
                                 task.wait(0.1)
                             end
                         end)
@@ -263,35 +292,9 @@ workspace.ChildAdded:Connect(function(v)
     end
 end)
 
--- [VÒNG LẶP RIÊNG CHO AUTO MỞ CỬA (SIÊU NHANH)]
+-- [VÒNG LẶP QUÉT VẬT THỂ & SMART EYES / LOOKMAN]
 task.spawn(function()
-    while task.wait(0.05) do
-        pcall(function()
-            if not _G.AutoOpen then return end
-            local char = LocalPlayer.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-
-            for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
-                local door = room:FindFirstChild("Door")
-                if door and door:IsA("Model") then
-                    local doorPart = door:FindFirstChild("Door") or door:FindFirstChild("Model") or door:PrimaryPart
-                    if doorPart and (root.Position - doorPart.Position).Magnitude <= 18 then
-                        local prompt = door:FindFirstChildOfClass("ProximityPrompt", true) or (door:FindFirstChild("Lock") and door.Lock:FindFirstChildOfClass("ProximityPrompt"))
-                        if prompt then
-                            prompt.HoldDuration = 0
-                            fireproximityprompt(prompt)
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
-
--- [VÒNG LẶP QUÉT CÁC TÍNH NĂNG CÒN LẠI (ESP, AUTO KEY, BOOK...)]
-task.spawn(function()
-    while task.wait(0.2) do
+    while task.wait(0.15) do
         pcall(function()
             local char = LocalPlayer.Character
             if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -322,30 +325,51 @@ task.spawn(function()
 
                 if v.Name == "Door" and v:IsA("Model") and (v:FindFirstChild("Sign") or v:FindFirstChild("Number")) then
                     if _G.ESP_Doors then CreateVisual(v, Color3.fromRGB(0, 255, 255), "DOOR") end
+                    if _G.AutoOpen and (root.Position - v:GetModelCFrame().p).Magnitude <= 15 then
+                        local p = v:FindFirstChildOfClass("ProximityPrompt") or v:FindFirstChild("Lock", true) and v.Lock:FindFirstChildOfClass("ProximityPrompt")
+                        if p then p.HoldDuration = 0; fireproximityprompt(p) end
+                    end
                 end
 
                 if v.Name:find("Lever") or v.Name:find("Switch") or v.Name:find("Breaker") or v.Name:find("Button") then
-                    if _G.ESP_Levers then CreateVisual(v, Color3.fromRGB(255, 128, 0), "LEVER / SWITCH") end
+                    local hasPrompt = v:FindFirstChildOfClass("ProximityPrompt") or (v.Parent and v.Parent:FindFirstChildOfClass("ProximityPrompt"))
+                    if hasPrompt or v:IsA("Model") or v:IsA("BasePart") then
+                        if _G.ESP_Levers then 
+                            CreateVisual(v, Color3.fromRGB(255, 128, 0), "LEVER / SWITCH")
+                        end
+                    end
                 end
 
                 if v.Name == "LiveHintBook" then
-                    if _G.ESP_Books then CreateVisual(v, Color3.fromRGB(170, 0, 255), "PUZZLE BOOK") end
-                    local p = v:FindFirstChildOfClass("ProximityPrompt", true)
-                    if _G.AutoBook and p and (root.Position - v:GetModelCFrame().p).Magnitude <= 40 then
-                        p.HoldDuration = 0; fireproximityprompt(p)
+                    local hasPrompt = v:FindFirstChildOfClass("ProximityPrompt") or (v.Parent and v.Parent:FindFirstChildOfClass("ProximityPrompt"))
+                    if hasPrompt then
+                        if _G.ESP_Books then
+                            CreateVisual(v, Color3.fromRGB(170, 0, 255), "PUZZLE BOOK")
+                        end
+                        if _G.AutoBook and (root.Position - (v:IsA("BasePart") and v.Position or v:GetModelCFrame().p)).Magnitude <= 40 then
+                            local p = hasPrompt
+                            if p then p.HoldDuration = 0; fireproximityprompt(p) end
+                        end
                     end
                 end
 
                 if v.Name == "BreakerPolePickup" or v.Name:find("BreakerPole") then
-                    if _G.ESP_Breakers then CreateVisual(v, Color3.fromRGB(0, 255, 0), "BREAKER POLE") end
-                    local p = v:FindFirstChildOfClass("ProximityPrompt", true)
-                    if _G.AutoBreaker and p and (root.Position - v:GetModelCFrame().p).Magnitude <= 40 then
-                        p.HoldDuration = 0; fireproximityprompt(p)
+                    local hasPrompt = v:FindFirstChildOfClass("ProximityPrompt") or (v.Parent and v.Parent:FindFirstChildOfClass("ProximityPrompt"))
+                    if hasPrompt then
+                        if _G.ESP_Breakers then
+                            CreateVisual(v, Color3.fromRGB(0, 255, 0), "BREAKER POLE")
+                        end
+                        if _G.AutoBreaker and (root.Position - (v:IsA("BasePart") and v.Position or v:GetModelCFrame().p)).Magnitude <= 40 then
+                            local p = hasPrompt
+                            if p then p.HoldDuration = 0; fireproximityprompt(p) end
+                        end
                     end
                 end
 
-                if v.Name:find("Rush") or v.Name:find("Ambush") or v.Name:find("Eyes") or v.Name:find("Figure") then
-                    if _G.ESP_Boss then CreateVisual(v, Color3.fromRGB(255, 0, 0), "ENTITY: " .. v.Name) end
+                if v.Name:find("Moving") or v.Name == "FigureTag" or v.Name == "SeekMoving" or v.Name == "RushMoving" or v.Name == "AmbushMoving" or v.Name == "Eyes" or v.Name == "Lookman" then
+                    if _G.ESP_Boss then 
+                        CreateVisual(v, Color3.fromRGB(255, 0, 0), "ENTITY: " .. v.Name) 
+                    end
                 end
             end
         end)
@@ -376,3 +400,4 @@ RunService.Stepped:Connect(function()
     end
     if _G.Fullbright then Lighting.Ambient = Color3.fromRGB(255, 255, 255) end
 end)
+
